@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>푸딩 말랑이</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
+<style>
+:root{--bg:#f4f3ec;--ink:#7d827a;--body:#ffe9a8;--top:#f2c46d;--shine:#fff8dc;--text:#5d625a;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#262925;--ink:#aab0a6;--body:#e9cf86;--top:#d3a24e;--shine:#fff3c4;--text:#c9cdc4;color-scheme:dark}}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font-family:'Jua','Apple SD Gothic Neo','Malgun Gothic',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden}
+svg{width:min(92vw,720px);height:auto;cursor:grab;overflow:visible}
+svg:active{cursor:grabbing}
+p{margin:0 0 8px;font-size:1.25rem;letter-spacing:.02em}
+small{font-size:.95rem;opacity:.75;margin-top:6px}
+.line{fill:none;stroke:var(--ink);stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</head>
+<body>
+<p id="msg">푸딩을 꾹 눌러보세요</p>
+<svg id="svg" viewBox="150 120 1170 900" role="img" aria-label="말랑한 푸딩">
+  <ellipse cx="735" cy="985" rx="440" ry="22" fill="var(--ink)" opacity=".12"/>
+  <g id="pud">
+    <path id="body" fill="var(--body)" d="M415 238 L240 828 C228 870 250 930 320 928 C370 925 395 900 430 905 C470 910 490 945 540 948 C590 948 610 918 650 915 C690 915 710 950 760 952 C810 950 830 915 870 915 C910 915 930 945 975 948 C1020 945 1040 910 1075 908 C1110 908 1130 925 1160 928 C1200 925 1225 890 1212 840 L1042 238 Z"/>
+    <path class="line" d="M415 238 L240 828 C228 870 250 930 320 928 C370 925 395 900 430 905 C470 910 490 945 540 948 C590 948 610 918 650 915 C690 915 710 950 760 952 C810 950 830 915 870 915 C910 915 930 945 975 948 C1020 945 1040 910 1075 908 C1110 908 1130 925 1160 928 C1200 925 1225 890 1212 840 L1042 238"/>
+    <path d="M300 760 C300 840 330 890 380 900" fill="none" stroke="var(--shine)" stroke-width="22" stroke-linecap="round" opacity=".7"/>
+    <ellipse cx="729" cy="241" rx="312" ry="64" fill="var(--top)"/>
+    <ellipse cx="729" cy="241" rx="312" ry="64" class="line"/>
+    <path d="M520 232 C600 205 700 200 800 206" fill="none" stroke="var(--shine)" stroke-width="14" stroke-linecap="round" opacity=".8"/>
+    <g class="line" stroke-width="8">
+      <path d="M381 373 L477 384"/><path d="M365 428 L383 430"/><path d="M351 479 L372 481"/>
+      <path d="M332 545 L445 562"/><path d="M315 599 L339 604"/><path d="M299 652 L327 657"/>
+      <path d="M281 721 L418 740"/>
+    </g>
+  </g>
+</svg>
+<small>누르고 끌면 눌리고 늘어나요</small>
+<script>
+(function(){
+  var svg=document.getElementById('svg'),pud=document.getElementById('pud'),msg=document.getElementById('msg');
+  var s=0,sv=0,k=0,kv=0,ts=0,tk=0,down=false,sx0=0,sy0=0,last=0,taps=0;
+  var PX=735,PY=950;
+  var lines=['푸딩을 꾹 눌러보세요','말랑말랑~','더 세게 눌러봐요','흔들흔들 푸르르','탱글탱글!'];
+  function pt(e){var r=svg.getBoundingClientRect();return{x:e.clientX,y:e.clientY,w:r.width}}
+  svg.addEventListener('pointerdown',function(e){
+    down=true;var p=pt(e);sx0=p.x;sy0=p.y;ts=.12;
+    try{svg.setPointerCapture(e.pointerId)}catch(_){}
+    taps++;msg.textContent=lines[taps%lines.length];
+    sv-=.6;
+  });
+  svg.addEventListener('pointermove',function(e){
+    if(!down)return;var p=pt(e),u=p.w/1170;
+    var dy=(p.y-sy0)/u,dx=(p.x-sx0)/u;
+    ts=Math.max(-.3,Math.min(.38,dy/700));
+    tk=Math.max(-22,Math.min(22,-dx/18));
+  });
+  function up(){if(!down)return;down=false;ts=0;tk=0;}
+  svg.addEventListener('pointerup',up);
+  svg.addEventListener('pointercancel',up);
+  function step(t){
+    var dt=Math.min(.033,(t-last)/1000||.016);last=t;
+    var a=(ts-s)*260-sv*9;sv+=a*dt;s+=sv*dt;
+    var b=(tk-k)*220-kv*7;kv+=b*dt;k+=kv*dt;
+    var sy=1-s,sx=1+s*.7;
+    pud.setAttribute('transform','translate('+PX+' '+PY+') skewX('+k.toFixed(2)+') scale('+sx.toFixed(4)+' '+sy.toFixed(4)+') translate('+(-PX)+' '+(-PY)+')');
+    requestAnimationFrame(step);
+  }
+  if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){sv=-.5;}
+  requestAnimationFrame(step);
+})();
+</script>
+</body>
+</html>
